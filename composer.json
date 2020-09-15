@@ -1,0 +1,17 @@
+{
+    "name": "ybrenlib/apollo-client-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "zhongwenyu",
+            "email": "zhongwenyu1987@163.com"
+        }
+    ],
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "ybrenLib\\apolloClient\\": "src\\ybrenLib\\apolloClient"
+        }
+    }
+}
