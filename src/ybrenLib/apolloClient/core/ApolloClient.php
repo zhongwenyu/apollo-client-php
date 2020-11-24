@@ -5,6 +5,8 @@ use GuzzleHttp\Client;
 use ybrenLib\apolloClient\core\cache\CacheDriver;
 use ybrenLib\apolloClient\core\cache\FileStorgeDriver;
 use ybrenLib\apolloClient\core\exception\ConfigException;
+use ybrenLib\apolloClient\core\utils\AuthorizationUtil;
+use ybrenLib\logger\utils\TimeUtil;
 use ybrenLib\registerCenter\RegisterCenterFactory;
 
 class ApolloClient{
@@ -14,7 +16,8 @@ class ApolloClient{
     private $clusterName;
     private $cacheTimeout;  // 缓存时间
     private $httpRequestTimeout = 1;
-    private $configUrl = "http://%s/configfiles/json/%s/%s/%s";
+    private $configUrl = "/configfiles/json/%s/%s/%s";
+    private $authorizationFormat = "Apollo %s:%s";
     private $config = [];
 
     /**
@@ -122,12 +125,24 @@ class ApolloClient{
      * @return mixed
      */
     public function getConfigDirectly($namespace){
-        $url = sprintf($this->configUrl , $this->configServer , $this->appId , $this->clusterName , $namespace);
+        $url = sprintf("http://%s" . $this->configUrl , $this->configServer , $this->appId , $this->clusterName ,
+        $namespace);
+
+        $headers = [
+            'Accept' => 'application/json',
+        ];
+
+        if(isset($this->config['apollo.accesskey.secret']) && !empty($this->config['apollo.accesskey.secret'])){
+            $timestamp = TimeUtil::getTimestamp();
+            $headers['Authorization'] = sprintf($this->authorizationFormat , $this->appId ,
+                AuthorizationUtil::buildHttpSignature($this->configUrl , $timestamp , $this->config['apollo.accesskey.secret']));
+            $headers['Timestamp'] = $timestamp;
+            $headers['Signtype'] = "http";
+        }
+
         $response = $this->httpClient->get($url , [
             'timeout' => $this->httpRequestTimeout,
-            'headers' => [
-                'Accept' => 'application/json',
-            ]
+            'headers' => $headers
         ]);
         $responseContents = json_decode($response->getBody()->getContents() , true);
         return $responseContents;
