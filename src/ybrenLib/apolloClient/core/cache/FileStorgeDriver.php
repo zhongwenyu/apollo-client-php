@@ -43,13 +43,16 @@ class FileStorgeDriver implements CacheDriver {
     }
 
     public function unlock($key){
-        @unlink($this->getLockFileName($key));
+        try{
+            @unlink($this->getLockFileName($key));
+        }catch (\Throwable $e){
+        }
     }
 
     private function getLockFileName($key){
         $lockPath = $this->fileName . DIRECTORY_SEPARATOR . "lock";
         if(!is_dir($lockPath)){
-            mkdir($lockPath , 0777 , true);
+            @mkdir($lockPath , 0777 , true);
         }
         return $lockPath . DIRECTORY_SEPARATOR . $key;
     }
