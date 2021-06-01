@@ -43,8 +43,9 @@ class FileStorgeDriver implements CacheDriver {
     }
 
     public function unlock($key){
+        $fileName = $this->getLockFileName($key);
         try{
-            @unlink($this->getLockFileName($key));
+            is_file($fileName) && @unlink($this->getLockFileName($key));
         }catch (\Throwable $e){
         }
     }
